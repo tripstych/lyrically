@@ -8,6 +8,7 @@ import json
 import time
 from collections import defaultdict
 import os
+from rhyme import rhymes_with
 
 # Download required NLTK data
 try:
@@ -29,7 +30,7 @@ except LookupError:
 pronunciations = cmudict.dict()
 
 class WordDatabase:
-    def __init__(self, db_path='words_database.db'):
+    def __init__(self, db_path='large_words_database.db'):
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
@@ -147,6 +148,9 @@ class WordDatabase:
         return None
     
     def get_rhymes(self, word):
+        """ Find rhymes with the rhymes_with function """
+        return rhymes_with(word)
+
         """Find rhymes for a word using pronunciation patterns"""
         rhymes = set()
         word_lower = word.lower()
@@ -164,10 +168,12 @@ class WordDatabase:
             for other_word, other_pronunciations in pronunciations.items():
                 if other_word != word_lower and len(other_word) >= 2:
                     for pronunciation in other_pronunciations:
-                        if len(pronunciation) >= 2:
+                        
+                        if len(pronunciation) >= 2 or (len(pronunciation) >= 1 and len(pronunciations[other_word][0]) >= 2):
                             if pronunciation[-2:] == rhyme_pattern:
                                 rhymes.add(other_word)
                                 break
+        # 
         
         return rhymes
     
@@ -288,14 +294,8 @@ class WordDatabase:
         """Main function to build the complete database"""
         print("Starting database build process...")
         
-        # Clean words file
-        clean_words = self.clean_words_file(words_file)
-        
-        if not clean_words:
-            print("No words to process!")
-            return
-        
-        words_list = sorted(list(clean_words))
+        # Get list of words from NLTK data
+        words_list = set(wordnet.words())
         total_words = len(words_list)
         
         print(f"Processing {total_words} unique words...")
@@ -443,3 +443,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+1
