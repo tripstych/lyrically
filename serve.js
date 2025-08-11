@@ -1,7 +1,7 @@
 const { NlpManager } = require('node-nlp');
 const express = require('express');
 const path = require('path');
-
+const sqlite = require('sqlite3').verbose();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,123 +15,7 @@ app.use(express.static(path.join(__dirname)));
 // NLP-based rhyme detection function with extensive word database
 function findRhymes(word) {
     // Comprehensive English word database organized by common endings
-    const wordDatabase = {
-        // -oon endings (for words like moon, soon, tune)
-        'oon': ['moon', 'soon', 'noon', 'spoon', 'croon', 'swoon', 'balloon', 'cartoon', 'raccoon', 'monsoon', 'lagoon', 'baboon', 'typhoon', 'bassoon', 'platoon', 'maroon', 'cocoon', 'harpoon'],
-        'une': ['tune', 'dune', 'june', 'prune', 'immune', 'commune', 'fortune', 'neptune', 'tribune', 'opportune'],
-        'oom': ['room', 'boom', 'zoom', 'doom', 'bloom', 'gloom', 'broom', 'groom', 'mushroom', 'bathroom', 'bedroom', 'classroom', 'restroom', 'ballroom', 'storeroom'],
-        
-        // Common rhyme patterns
-        'at': ['cat', 'bat', 'hat', 'mat', 'rat', 'fat', 'sat', 'pat', 'chat', 'flat', 'that', 'what', 'combat', 'format', 'habitat', 'diplomat', 'democrat', 'aristocrat', 'acrobat', 'thermostat'],
-        'ight': ['light', 'night', 'bright', 'sight', 'right', 'flight', 'might', 'fight', 'tight', 'white', 'bite', 'kite', 'quite', 'write', 'height', 'weight', 'freight', 'delight', 'insight', 'midnight', 'sunlight', 'daylight', 'spotlight', 'moonlight', 'starlight', 'twilight', 'highlight', 'copyright', 'outright', 'upright'],
-        'ay': ['day', 'way', 'say', 'play', 'stay', 'pay', 'may', 'lay', 'pray', 'gray', 'hey', 'they', 'bay', 'ray', 'clay', 'spray', 'array', 'display', 'delay', 'replay', 'essay', 'decay', 'relay', 'today', 'away', 'okay', 'holiday', 'birthday', 'subway', 'highway', 'runway', 'gateway', 'doorway', 'hallway', 'pathway', 'freeway', 'railway'],
-        'ove': ['love', 'dove', 'above', 'shove', 'glove', 'grove', 'stove', 'clove', 'trove'],
-        'art': ['heart', 'start', 'part', 'art', 'cart', 'smart', 'dart', 'chart', 'apart', 'depart', 'restart', 'upstart', 'sweetheart', 'counterpart'],
-        'ime': ['time', 'rhyme', 'chime', 'lime', 'climb', 'prime', 'crime', 'mime', 'dime', 'grime', 'slime', 'thyme', 'sometime', 'anytime', 'bedtime', 'halftime', 'overtime', 'lifetime', 'pastime', 'wartime', 'playtime', 'daytime', 'nighttime'],
-        'ound': ['sound', 'found', 'ground', 'round', 'bound', 'wound', 'pound', 'mound', 'hound', 'compound', 'background', 'playground', 'underground', 'surround', 'profound', 'astound', 'rebound', 'unbound', 'inbound', 'outbound'],
-        'ind': ['mind', 'find', 'kind', 'bind', 'wind', 'blind', 'behind', 'remind', 'mankind', 'grind', 'signed', 'designed', 'refined', 'combined', 'defined', 'confined', 'assigned', 'aligned', 'resigned'],
-        'ee': ['tree', 'free', 'sea', 'bee', 'key', 'see', 'flee', 'knee', 'agree', 'three', 'coffee', 'degree', 'referee', 'employee', 'guarantee', 'committee', 'trustee', 'debris', 'decree', 'jamboree'],
-        'un': ['run', 'fun', 'sun', 'gun', 'done', 'one', 'won', 'son', 'ton', 'begun', 'someone', 'everyone', 'anyone', 'stun', 'spun', 'bun', 'nun', 'pun', 'outrun', 'rerun', 'homerun', 'shotgun'],
-        'ue': ['blue', 'true', 'clue', 'glue', 'due', 'sue', 'new', 'few', 'crew', 'drew', 'flew', 'grew', 'knew', 'threw', 'view', 'review', 'preview', 'interview', 'revenue', 'rescue', 'value', 'issue', 'tissue', 'virtue', 'statue', 'continue', 'pursue', 'argue', 'barbecue'],
-        'ore': ['more', 'store', 'before', 'door', 'floor', 'poor', 'four', 'war', 'for', 'or', 'core', 'score', 'shore', 'bore', 'wore', 'tore', 'explore', 'ignore', 'restore', 'adore', 'therefore', 'furthermore', 'evermore', 'outdoor', 'indoor', 'hardcore'],
-        'ake': ['make', 'take', 'lake', 'cake', 'wake', 'brake', 'shake', 'snake', 'break', 'fake', 'bake', 'rake', 'stake', 'mistake', 'earthquake', 'handshake', 'pancake', 'cupcake', 'awake', 'remake', 'forsake', 'partake'],
-        'ame': ['same', 'name', 'game', 'came', 'fame', 'frame', 'shame', 'blame', 'flame', 'claim', 'aim', 'tame', 'lame', 'became', 'nickname', 'surname', 'filename', 'ballgame'],
-        'ead': ['head', 'read', 'bread', 'dead', 'lead', 'spread', 'thread', 'dread', 'shed', 'fed', 'red', 'bed', 'said', 'ahead', 'instead', 'widespread', 'overhead', 'thoroughbred'],
-        'ell': ['tell', 'well', 'sell', 'bell', 'cell', 'spell', 'shell', 'smell', 'fell', 'hell', 'yell', 'dwell', 'swell', 'hotel', 'rebel', 'excel', 'farewell', 'doorbell', 'seashell', 'eggshell'],
-        'old': ['old', 'cold', 'gold', 'hold', 'told', 'sold', 'bold', 'fold', 'mold', 'behold', 'unfold', 'household', 'threshold', 'foothold', 'stronghold', 'manifold', 'scaffold', 'blindfold'],
-        'ive': ['live', 'give', 'five', 'drive', 'alive', 'arrive', 'derive', 'survive', 'archive', 'forgive', 'active', 'native', 'otive', 'otive', 'creative', 'negative', 'positive', 'relative', 'objective', 'effective', 'detective', 'selective', 'protective', 'collective', 'attractive', 'expensive', 'extensive', 'exclusive', 'executive', 'alternative', 'conservative', 'progressive', 'competitive', 'comprehensive'],
-        'ase': ['case', 'base', 'face', 'place', 'race', 'space', 'chase', 'phase', 'grace', 'trace', 'embrace', 'replace', 'database', 'suitcase', 'briefcase', 'staircase', 'showcase', 'lowercase', 'uppercase', 'marketplace', 'workplace', 'fireplace'],
-        'ice': ['nice', 'price', 'twice', 'dice', 'rice', 'mice', 'vice', 'slice', 'spice', 'advice', 'device', 'service', 'office', 'notice', 'practice', 'justice', 'sacrifice', 'prejudice'],
-        'ose': ['rose', 'close', 'chose', 'nose', 'pose', 'those', 'whose', 'lose', 'dose', 'hose', 'compose', 'propose', 'suppose', 'oppose', 'expose', 'dispose', 'impose', 'decompose'],
-        'use': ['use', 'choose', 'lose', 'news', 'views', 'blues', 'clues', 'shoes', 'cruise', 'abuse', 'excuse', 'refuse', 'confuse', 'accuse', 'amuse', 'diffuse', 'peruse', 'reuse'],
-        'ack': ['back', 'pack', 'track', 'black', 'crack', 'lack', 'stack', 'attack', 'snack', 'quack', 'hack', 'jack', 'rack', 'sack', 'feedback', 'comeback', 'backpack', 'soundtrack', 'paperback', 'quarterback'],
-        'ock': ['rock', 'clock', 'block', 'lock', 'sock', 'dock', 'shock', 'knock', 'stock', 'flock', 'mock', 'unlock', 'padlock', 'deadlock', 'woodblock', 'roadblock', 'hemlock', 'shamrock', 'livestock'],
-        'ook': ['book', 'look', 'took', 'cook', 'hook', 'brook', 'shook', 'crook', 'notebook', 'handbook', 'textbook', 'cookbook', 'workbook', 'facebook', 'outlook', 'overlook', 'undertook'],
-        'alk': ['walk', 'talk', 'chalk', 'stalk', 'sidewalk', 'catwalk', 'crosswalk', 'boardwalk'],
-        'all': ['all', 'call', 'fall', 'ball', 'wall', 'hall', 'small', 'tall', 'mall', 'recall', 'install', 'overall', 'baseball', 'football', 'basketball', 'volleyball', 'softball', 'downfall', 'waterfall', 'rainfall', 'snowfall'],
-        'ill': ['will', 'fill', 'kill', 'still', 'hill', 'bill', 'mill', 'till', 'skill', 'grill', 'drill', 'chill', 'spill', 'thrill', 'fulfill', 'instill', 'windmill', 'treadmill', 'downhill', 'uphill', 'anthill'],
-        'est': ['best', 'test', 'rest', 'west', 'nest', 'guest', 'chest', 'quest', 'invest', 'protest', 'contest', 'request', 'suggest', 'arrest', 'fastest', 'biggest', 'longest', 'shortest', 'highest', 'lowest']
-    };
-    
-    const inputWord = word.toLowerCase();
-    let allRhymes = [];
-    
-    // Function to get phonetic ending patterns
-    function getPhoneticPatterns(word) {
-        const patterns = [];
-        const len = word.length;
-        
-        // Get various ending patterns
-        if (len >= 2) patterns.push(word.slice(-2));
-        if (len >= 3) patterns.push(word.slice(-3));
-        if (len >= 4) patterns.push(word.slice(-4));
-        
-        return patterns;
-    }
-    
-    // Function to check if two words rhyme based on multiple criteria
-    function isRhyme(word1, word2) {
-        if (word1 === word2) return false;
-        
-        const patterns1 = getPhoneticPatterns(word1);
-        const patterns2 = getPhoneticPatterns(word2);
-        
-        // Check for exact pattern matches
-        for (const p1 of patterns1) {
-            for (const p2 of patterns2) {
-                if (p1 === p2 && p1.length >= 2) return true;
-            }
-        }
-        
-        // Check for vowel sound similarity
-        const vowelPattern1 = getLastVowelPattern(word1);
-        const vowelPattern2 = getLastVowelPattern(word2);
-        
-        if (vowelPattern1 && vowelPattern2 && vowelPattern1 === vowelPattern2) {
-            return true;
-        }
-        
-        return false;
-    }
-    
-    // First, find direct matches from organized database
-    for (const [pattern, words] of Object.entries(wordDatabase)) {
-        if (inputWord.includes(pattern) || inputWord.endsWith(pattern)) {
-            allRhymes.push(...words.filter(w => w !== inputWord));
-        }
-    }
-    
-    // Then search all words for phonetic matches
-    const allWords = Object.values(wordDatabase).flat();
-    for (const testWord of allWords) {
-        if (!allRhymes.includes(testWord) && isRhyme(inputWord, testWord)) {
-            allRhymes.push(testWord);
-        }
-    }
-    
-    // Generate additional rhymes based on common patterns
-    const commonSuffixes = ['ed', 'ing', 'er', 'est', 'ly', 'tion', 'sion', 'ness', 'ment', 'ful', 'less'];
-    const generatedRhymes = [];
-    
-    for (const rhyme of allRhymes.slice(0, 20)) { // Limit base words to prevent explosion
-        for (const suffix of commonSuffixes) {
-            const generated = rhyme + suffix;
-            if (!allRhymes.includes(generated) && !generatedRhymes.includes(generated)) {
-                generatedRhymes.push(generated);
-            }
-        }
-    }
-    
-    // Combine all rhymes and remove duplicates
-    const combinedRhymes = [...new Set([...allRhymes, ...generatedRhymes])];
-    
-    // Sort by relevance (shorter words first, then alphabetically)
-    combinedRhymes.sort((a, b) => {
-        const lenDiff = a.length - b.length;
-        return lenDiff !== 0 ? lenDiff : a.localeCompare(b);
-    });
-    
-    return combinedRhymes.slice(0, 100); // Return up to 100 rhymes
+    wordsData = sqlite('words_database.db');
 }
 
 // Helper function to extract vowel patterns
