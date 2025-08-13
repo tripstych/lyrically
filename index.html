@@ -1,0 +1,197 @@
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #f0f0f0;
+                font-family: Arial, sans-serif;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+            #shadow_lyrics, #lyrics {
+                position: absolute;
+                font-size: 16px;
+                font-family: 'Courier New', Courier, monospace;
+                line-height: 1.5;
+                color: #333;
+                width: 100%;
+                height: 100%;
+                padding: 10px;
+                margin: auto;
+                border: none;
+                box-sizing: border-box;
+                background-color: transparent;
+            } 
+            #shadow_lyrics {
+                color: transparent;
+                background-color: transparent;
+                width: 1000%;
+            }
+            #lyrics {
+                color: #333;
+                resize: none; 
+            }
+            #info {
+                position: absolute;
+                top: 80%;
+                width: 100%;
+                height: 20%;
+                font-size: 14px;
+                color: #666;
+                background: rgba(255,255,255,0.8);
+                overflow-y: auto;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .append { display: inline; }
+            .syllable-count {
+                color: #fff;
+                border: 1px solid green;
+                border-radius: 1em;
+                width: 1em;
+                display: inline-block;
+                height: 1em;
+                line-height: 1em;
+                text-align: center;
+                margin: 0 2px;
+                background: #333;
+            }
+            .syllable-total { 
+                padding: 2px;
+                border: 1px solid green;
+                border-radius: 1em;
+                width: 1em;
+                display: inline-block;
+                height: 1em;
+                line-height: 1em;
+                text-align: center;
+                margin: 0 2px;
+                color: #ff1;
+                background: #128;
+            }
+            .pad { padding: 2px; }
+
+            /* Word Info Display Classes */
+            .word-info-container {
+                padding: 10px;
+                font-family: Arial, sans-serif;
+                max-height: 400px;
+            }
+
+            .word-info-header {
+                margin: 0 0 10px 0;
+                color: #333;
+                font-size: 16px;
+            }
+
+            .selected-word {
+                color: #0066cc;
+                font-weight: bold;
+            }
+
+            .word-details {
+                margin-bottom: 15px;
+                padding: 8px;
+                background-color: #e9f4ff;
+                border-radius: 3px;
+            }
+
+            .relationship-section {
+                margin-bottom: 15px;
+            }
+
+            .relationship-header {
+                margin: 0 0 5px 0;
+                color: #444;
+                font-size: 14px;
+            }
+
+            .rhymes-list {
+                color: #cc6600;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .synonyms-list {
+                color: #006600;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .antonyms-list {
+                color: #cc3300;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .homonyms-list {
+                color: #9933cc;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .relationship-count {
+                border: 1px solid #ccc;
+                border-radius: 1em;
+                color: #666;
+                font-size: 11px;
+                margin-top: 3px;
+            }
+
+            .no-results {
+                color: #999;
+                font-style: italic;
+            }
+
+            .loading-message {
+                color: #666;
+                font-style: italic;
+                padding: 10px;
+            }
+
+            .error-message {
+                color: #cc0000;
+                font-style: italic;
+                padding: 10px;
+            }
+
+            .not-found-message {
+                color: #e74c3c;
+                padding: 10px;
+            }
+
+            .default-message {
+                color: #999;
+                font-style: italic;
+                padding: 10px;
+            }
+
+            .primary-word-note {
+                margin: 5px 0;
+                color: #666;
+                font-size: 12px;
+            }
+            .error-details {
+                font-size: 0.9em;
+                opacity: 0.8;
+            }
+            body, div { margin: 0; padding: 0;}
+            #buttons { 
+                position: absolute; bottom: 0; right: 0;
+            }
+            #buttons button { float: left; border: 0; margin: 4px; padding: 4px; background: #333; color: #fff; }
+        </style>
+    </head>
+    <body>
+    <div>
+        <div id="shadow_lyrics"></div>
+        <textarea id="lyrics"></textarea>
+    </div>
+    <div id="info"></div>
+    <div id="buttons">
+        <button id="openBtn">Open</button>
+        <button id="saveBtn">Save</button>
+    </div>
+    <script src="lyrically.js"></script>
+    </body>
+</html>

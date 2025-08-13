@@ -8,6 +8,28 @@
 const BASE_URL = 'http://localhost:8080';
 
 
+const { ipcRenderer } = require('electron');
+
+document.getElementById('openBtn').addEventListener('click', async () => {
+  const result = await ipcRenderer.invoke('open-file');
+  if (!result.canceled) {
+    document.getElementById('lyrics').textContent = result.content;    
+  }
+});
+/* Save file */
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const content = document.getElementById('lyrics').value;
+  const result = await ipcRenderer.invoke('save-file', content);
+  if (result.canceled) {
+    console.log('Save canceled');
+  } else {
+    console.log('File saved:', result.filePath);
+  }
+});
+
+
+
+
 function betterSyllableSplit(word) {
   if (!word || typeof word !== 'string') {
     return [];
@@ -197,9 +219,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const lyrics = document.getElementById('lyrics');
     const shadowLyrics = document.getElementById('shadow_lyrics');
     const infoDiv = document.getElementById('info');
-    
-    shadowLyrics.innerHTML = lyrics.value.replace(/\n/g, '<br>');
-    
+
+
+    //add scroll event listener to lyrics
+    lyrics.addEventListener('scroll', function() {
+        shadowLyrics.style.top = (-lyrics.scrollTop)+'px';
+    });
+
     lyrics.addEventListener('input', function() {
         let total = 0;
         let syll = '';
@@ -207,7 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
         lyrics.value.split('\n').forEach(function(line) {
             txt = ' ';
             total = 0;
-            line = line.trim();
             line.split(' ').forEach(function(word) {
                 word = word.trim();
                 if (word.length > 0) {
@@ -217,10 +242,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             if (line.trim().length > 0) {
-              syll += line.replace(/ /g,'&nbsp;')+txt+"<span class='syllable-total'>"+total+"</span><br/>";
+              syll += line.replace(/ /g,'&nbsp;')+txt+"<span class='syllable-total'>"+total+"</span>\n";
+            } else {
+              syll += "\n";
             }
         });
-        shadowLyrics.innerHTML = syll;
+        shadowLyrics.innerHTML = syll.replace(/\n/g, '<br/>');
     });
 
     // Text selection functionality with more robust event handling
